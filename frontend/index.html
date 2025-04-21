@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Order Manager</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; }
+    input { margin: 5px; padding: 5px; }
+  </style>
+</head>
+<body>
+
+  <h2>Order Manager</h2>
+
+  <div>
+    <input id="orderId" placeholder="Order ID">
+    <input id="orderName" placeholder="Order Name">
+    <input id="quantity" placeholder="Quantity">
+    <input id="contact" placeholder="Customer Contact">
+    <button onclick="submitOrder()">Submit / Update</button>
+  </div>
+
+  <table id="ordersTable">
+    <thead>
+      <tr><th>Order ID</th><th>Order Name</th><th>Quantity</th><th>Contact</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const apiUrl = 'https://script.google.com/macros/s/AKfycbz76XVXw4k6XHXXmRZgmiVzCc0EQntdQNYvxbdiLFOAKih7VRygVA-OOp2HX6FNbRw5_w/exec';
+
+    async function loadOrders() {
+      const res = await fetch(apiUrl);
+      const data = await res.json();
+      const tbody = document.querySelector('#ordersTable tbody');
+      tbody.innerHTML = '';
+      data.forEach(order => {
+        const row = `<tr><td>${order.orderId}</td><td>${order.orderName}</td><td>${order.quantity}</td><td>${order.contact}</td></tr>`;
+        tbody.innerHTML += row;
+      });
+    }
+
+    async function submitOrder() {
+      const body = {
+        orderId: document.getElementById('orderId').value,
+        orderName: document.getElementById('orderName').value,
+        quantity: document.getElementById('quantity').value,
+        contact: document.getElementById('contact').value,
+      };
+      const res = await fetch(apiUrl, {
+        method: 'POST',
+        body: JSON.stringify(body),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      alert(await res.text());
+      loadOrders();
+    }
+
+    loadOrders();
+  </script>
+
+</body>
+</html>
