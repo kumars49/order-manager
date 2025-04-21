@@ -21,7 +21,13 @@
     <input id="contact" placeholder="Customer Contact">
     <button onclick="submitOrder()">Submit / Update</button>
   </div>
-
+   <div style="margin-bottom: 20px;">
+    <input type="text" id="searchId" placeholder="Enter Order ID" />
+    <button onclick="searchOrder()">Search Order</button>
+    <div id="searchResult" style="margin-top: 10px;"></div>
+  </div>
+	
+ 
   <table id="ordersTable">
     <thead>
       <tr><th>Order ID</th><th>Order Name</th><th>Quantity</th><th>Contact</th></tr>
@@ -30,7 +36,7 @@
   </table>
 
   <script>
-    const apiUrl = 'https://script.google.com/macros/s/AKfycbwqaKl9Rr_PABqtE9kGQVaFXPxacTkAqyiRmbO8RuIKf_YZjdizRG5x2zlZGLG96EBhCw/exec';
+    const apiUrl = 'https://script.google.com/macros/s/AKfycbz61T6ZrNtj-7zin8_0Wl58VzrCvp3PhAsCC4NCh2aG3x0HIsBaUPPB-uKz1PoKNqYgSg/exec';
 
     async function loadOrders() {
       const res = await fetch(apiUrl);
@@ -61,6 +67,36 @@
 
     loadOrders();
   </script>
+  function searchOrder() {
+  const searchId = document.getElementById('searchId').value.trim();
+  if (!searchId) {
+    alert('Please enter an Order ID');
+    return;
+  }
+
+  fetch(apiUrl)
+    .then(res => res.json())
+    .then(data => {
+      const order = data.find(o => o["Order ID"] == searchId);
+      const resultDiv = document.getElementById('searchResult');
+      if (order) {
+        resultDiv.innerHTML = `
+          <strong>Order Found:</strong><br>
+          <b>Order ID:</b> ${order["Order ID"]}<br>
+          <b>Order Name:</b> ${order["Order Name"]}<br>
+          <b>Quantity:</b> ${order["Quantity"]}<br>
+          <b>Contact:</b> ${order["Contact"]}
+        `;
+      } else {
+        resultDiv.innerHTML = `<span style="color: red;">Order ID ${searchId} not found.</span>`;
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      alert('Failed to fetch orders');
+    });
+}
+
 
 </body>
 </html>
