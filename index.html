@@ -29,7 +29,7 @@
 
   <!-- 🔍 Search Bar -->
   <div style="margin-bottom: 20px;">
-    <input type="text" id="searchId" placeholder="Enter Order ID" />
+    <input type="text" id="searchId" placeholder="Enter Customer Contact" />
     <button onclick="searchOrder()">Search Order</button>
     <div id="searchResult" style="margin-top: 10px;"></div>
   </div>
@@ -57,7 +57,7 @@
   </table>
 
   <script>
-    const apiUrl = 'https://script.google.com/macros/s/AKfycbxOPpV0dwql1i-NtLhJ1H_EZlCI3Ylx8pomB8Jivyn3o-zKzFxzzutr_HrAdSTfyXdaXQ/exec';
+    const apiUrl = 'https://script.google.com/macros/s/AKfycbzvBikceOakUhlSVUy3O83cawHWr66wJrWBuazE05cwgKZEHsXZ3jXlNZZiZUKmKPrLkA/exec';
 
     // 📤 Submit (Add/Update) Order
     function submitOrder() {
@@ -86,7 +86,7 @@
 
     // 🔍 Search by Customer Contact Number
     function searchOrder() {
-      const contact = document.getElementById("Contact").value;
+      const contact = document.getElementById("contact").value;
       if (!contact) {
         alert('Please enter customer contact number');
         return;
