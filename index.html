@@ -2,146 +2,102 @@
 <html>
 <head>
   <title>Order Manager</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-    }
-    input, button {
-      margin: 5px;
-      padding: 5px;
-    }
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: left;
-    }
-  </style>
 </head>
 <body>
+  <h1>Order Manager</h1>
 
-  <h2>Order Manager</h2>
+  <!-- Search by Contact -->
+  <label for="contactInput">Search by Contact:</label>
+  <input type="text" id="contactInput" placeholder="Enter contact number">
+  <button onclick="searchOrder()">Search</button>
 
-  <!-- 🔍 Search Bar -->
-  <div style="margin-bottom: 20px;">
-    <input type="text" id="searchId" placeholder="Enter Customer Contact" />
-    <button onclick="searchOrder()">Search Order</button>
-    <div id="searchResult" style="margin-top: 10px;"></div>
-  </div>
+  <div id="orderDetails" style="margin-top: 20px;"></div>
 
-  <!-- 📝 Add/Update Order Form -->
-  <div>
-    <input type="text" id="orderId" placeholder="Order ID" />
-    <input type="text" id="orderName" placeholder="Order Name" />
-    <input type="number" id="quantity" placeholder="Quantity" />
-    <input type="text" id="contact" placeholder="Contact" />
-    <button onclick="submitOrder()">Submit</button>
-  </div>
-
-  <!-- 📋 Order Table -->
-  <table>
-    <thead>
-      <tr>
-        <th>Order ID</th>
-        <th>Order Name</th>
-        <th>Quantity</th>
-        <th>Contact</th>
-      </tr>
-    </thead>
-    <tbody id="ordersBody"></tbody>
-  </table>
+  <!-- Fetch All Orders -->
+  <button onclick="fetchAllOrders()">Fetch All Orders</button>
+  <div id="allOrders" style="margin-top: 20px;"></div>
 
   <script>
-    const apiUrl = 'https://script.google.com/macros/s/AKfycbx_QemFUf-vrAe6nmGLNuk8HQFxisRhZs_Ds8uEfebBL_8POau4kIp9LaNPNwjkGHzW8w/exec';
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx_QemFUf-vrAe6nmGLNuk8HQFxisRhZs_Ds8uEfebBL_8POau4kIp9LaNPNwjkGHzW8w/exec';
 
-    // 📤 Submit (Add/Update) Order
-    function submitOrder() {
-      const order = {
-        orderId: document.getElementById('orderId').value,
-        orderName: document.getElementById('orderName').value,
-        quantity: document.getElementById('quantity').value,
-        contact: document.getElementById('contact').value
-      };
-
-      fetch(apiUrl, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(order)
-      }).then(() => {
-        alert('Order submitted');
-        fetchOrders();
-      }).catch(err => {
-        console.error(err);
-        alert('Error submitting order');
-      });
-    }
-
-    // 🔍 Search by Customer Contact Number
+    // Function to search an order by contact number
     function searchOrder() {
-      const contact = document.getElementById("contact").value;
+      const contact = document.getElementById('contactInput').value.trim();
       if (!contact) {
-        alert('Please enter customer contact number');
+        alert("Please enter a contact number.");
         return;
       }
 
-      fetch(apiUrl)
-        .then(res => res.json())
+      fetch(`${GOOGLE_SCRIPT_URL}?contact=${encodeURIComponent(contact)}`)
+        .then(response => response.json())
         .then(data => {
-          const order = data.find(o => o["Contact"] == searchId);
-          const resultDiv = document.getElementById('searchResult');
-          if (order) {
-            resultDiv.innerHTML = `
-              <strong>Order Found:</strong><br>
-              <b>Order ID:</b> ${order["Order ID"]}<br>
-              <b>Order Name:</b> ${order["Order Name"]}<br>
-              <b>Quantity:</b> ${order["Quantity"]}<br>
-              <b>Contact:</b> ${order["Contact"]}
+          if (data && data.orderId) {
+            document.getElementById("orderDetails").innerHTML = `
+              <p><strong>Order ID:</strong> ${data.orderId}</p>
+              <p><strong>Order Name:</strong> ${data.orderName}</p>
+              <p><strong>Quantity:</strong> ${data.quantity}</p>
+              <p><strong>Contact:</strong> ${data.contact}</p>
+              <button onclick="fulfillOrder('${data.orderId}')">Mark as Fulfilled</button>
             `;
           } else {
-            resultDiv.innerHTML = `<span style="color: red;">Order ID ${searchId} not found.</span>`;
+            document.getElementById("orderDetails").innerHTML = `<p>No order found for contact: ${contact}</p>`;
           }
         })
-        .catch(err => {
-          console.error(err);
-          alert('Error searching for order');
+        .catch(error => {
+          console.error("Error:", error);
+          alert("Error fetching order.");
         });
     }
 
-    // 📥 Fetch All Orders
-    function fetchOrders() {
-      fetch(apiUrl)
-        .then(res => res.json())
+    // Function to fetch all orders from the Google Sheet
+    function fetchAllOrders() {
+      fetch(GOOGLE_SCRIPT_URL)
+        .then(response => response.json())
         .then(data => {
-          const tbody = document.getElementById('ordersBody');
-          tbody.innerHTML = '';
-          data.forEach(order => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td>${order["Order ID"]}</td>
-              <td>${order["Order Name"]}</td>
-              <td>${order["Quantity"]}</td>
-              <td>${order["Contact"]}</td>
-            `;
-            tbody.appendChild(row);
-          });
+          if (data && Array.isArray(data)) {
+            let ordersHtml = '<h2>All Orders</h2>';
+            data.forEach(order => {
+              ordersHtml += `
+                <div>
+                  <p><strong>Order ID:</strong> ${order.orderId}</p>
+                  <p><strong>Order Name:</strong> ${order.orderName}</p>
+                  <p><strong>Quantity:</strong> ${order.quantity}</p>
+                  <p><strong>Contact:</strong> ${order.contact}</p>
+                  <button onclick="fulfillOrder('${order.orderId}')">Mark as Fulfilled</button>
+                  <hr />
+                </div>
+              `;
+            });
+            document.getElementById("allOrders").innerHTML = ordersHtml;
+          } else {
+            document.getElementById("allOrders").innerHTML = `<p>No orders found.</p>`;
+          }
         })
-        .catch(err => {
-          console.error(err);
-          alert('Failed to load orders');
+        .catch(error => {
+          console.error("Error:", error);
+          alert("Error fetching all orders.");
         });
     }
 
-    // 🔄 Load orders on page load
-    window.onload = fetchOrders;
+    // Function to mark an order as fulfilled (delete it)
+    function fulfillOrder(orderId) {
+      if (!confirm("Mark this order as fulfilled and delete it?")) return;
+
+      fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", orderId: orderId })
+      })
+        .then(response => response.json())
+        .then(result => {
+          alert(result.message);
+          fetchAllOrders(); // Refresh the orders list after deletion
+        })
+        .catch(error => {
+          console.error("Error:", error);
+          alert("Failed to delete order.");
+        });
+    }
   </script>
 </body>
 </html>
-
