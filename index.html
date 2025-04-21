@@ -84,18 +84,18 @@
       });
     }
 
-    // 🔍 Search by Order ID
+    // 🔍 Search by Customer Contact Number
     function searchOrder() {
-      const searchId = document.getElementById('searchId').value.trim();
-      if (!searchId) {
-        alert('Please enter an Order ID');
+      const contact = document.getElementById("contact").value;
+      if (!contact) {
+        alert('Please enter customer contact number');
         return;
       }
 
       fetch(apiUrl)
         .then(res => res.json())
         .then(data => {
-          const order = data.find(o => o["Order ID"] == searchId);
+          const order = data.find(o => o["Contact"] == searchId);
           const resultDiv = document.getElementById('searchResult');
           if (order) {
             resultDiv.innerHTML = `
