@@ -66,8 +66,7 @@
     }
 
     loadOrders();
-  </script>
-  function searchOrder() {
+    function searchOrder() {
   const searchId = document.getElementById('searchId').value.trim();
   if (!searchId) {
     alert('Please enter an Order ID');
@@ -95,6 +94,9 @@
       console.error(err);
       alert('Failed to fetch orders');
     });
+}
+	
+  </script>
 }
 
 
