@@ -1,104 +1,147 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
   <title>Order Manager</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; }
-    input { margin: 5px; padding: 5px; }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    input, button {
+      margin: 5px;
+      padding: 5px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
   </style>
 </head>
 <body>
 
   <h2>Order Manager</h2>
 
-  <div>
-    <input id="orderId" placeholder="Order ID">
-    <input id="orderName" placeholder="Order Name">
-    <input id="quantity" placeholder="Quantity">
-    <input id="contact" placeholder="Customer Contact">
-    <button onclick="submitOrder()">Submit / Update</button>
-  </div>
-   <div style="margin-bottom: 20px;">
+  <!-- 🔍 Search Bar -->
+  <div style="margin-bottom: 20px;">
     <input type="text" id="searchId" placeholder="Enter Order ID" />
     <button onclick="searchOrder()">Search Order</button>
     <div id="searchResult" style="margin-top: 10px;"></div>
   </div>
-	
- 
-  <table id="ordersTable">
+
+  <!-- 📝 Add/Update Order Form -->
+  <div>
+    <input type="text" id="orderId" placeholder="Order ID" />
+    <input type="text" id="orderName" placeholder="Order Name" />
+    <input type="number" id="quantity" placeholder="Quantity" />
+    <input type="text" id="contact" placeholder="Contact" />
+    <button onclick="submitOrder()">Submit</button>
+  </div>
+
+  <!-- 📋 Order Table -->
+  <table>
     <thead>
-      <tr><th>Order ID</th><th>Order Name</th><th>Quantity</th><th>Contact</th></tr>
+      <tr>
+        <th>Order ID</th>
+        <th>Order Name</th>
+        <th>Quantity</th>
+        <th>Contact</th>
+      </tr>
     </thead>
-    <tbody></tbody>
+    <tbody id="ordersBody"></tbody>
   </table>
 
   <script>
-    const apiUrl = 'https://script.google.com/macros/s/AKfycbz61T6ZrNtj-7zin8_0Wl58VzrCvp3PhAsCC4NCh2aG3x0HIsBaUPPB-uKz1PoKNqYgSg/exec';
+    const apiUrl = 'https://script.google.com/macros/s/AKfycbxOPpV0dwql1i-NtLhJ1H_EZlCI3Ylx8pomB8Jivyn3o-zKzFxzzutr_HrAdSTfyXdaXQ/exec';
 
-    async function loadOrders() {
-      const res = await fetch(apiUrl);
-      const data = await res.json();
-      const tbody = document.querySelector('#ordersTable tbody');
-      tbody.innerHTML = '';
-      data.forEach(order => {
-        const row = `<tr><td>${order.orderId}</td><td>${order.orderName}</td><td>${order.quantity}</td><td>${order.contact}</td></tr>`;
-        tbody.innerHTML += row;
-      });
-    }
-
-    async function submitOrder() {
-      const body = {
+    // 📤 Submit (Add/Update) Order
+    function submitOrder() {
+      const order = {
         orderId: document.getElementById('orderId').value,
         orderName: document.getElementById('orderName').value,
         quantity: document.getElementById('quantity').value,
-        contact: document.getElementById('contact').value,
+        contact: document.getElementById('contact').value
       };
-      const res = await fetch(apiUrl, {
+
+      fetch(apiUrl, {
         method: 'POST',
-        body: JSON.stringify(body),
-        headers: { 'Content-Type': 'application/json' }
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(order)
+      }).then(() => {
+        alert('Order submitted');
+        fetchOrders();
+      }).catch(err => {
+        console.error(err);
+        alert('Error submitting order');
       });
-      alert(await res.text());
-      loadOrders();
     }
 
-    loadOrders();
+    // 🔍 Search by Order ID
     function searchOrder() {
-  const searchId = document.getElementById('searchId').value.trim();
-  if (!searchId) {
-    alert('Please enter an Order ID');
-    return;
-  }
-
-  fetch(apiUrl)
-    .then(res => res.json())
-    .then(data => {
-      const order = data.find(o => o["Order ID"] == searchId);
-      const resultDiv = document.getElementById('searchResult');
-      if (order) {
-        resultDiv.innerHTML = `
-          <strong>Order Found:</strong><br>
-          <b>Order ID:</b> ${order["Order ID"]}<br>
-          <b>Order Name:</b> ${order["Order Name"]}<br>
-          <b>Quantity:</b> ${order["Quantity"]}<br>
-          <b>Contact:</b> ${order["Contact"]}
-        `;
-      } else {
-        resultDiv.innerHTML = `<span style="color: red;">Order ID ${searchId} not found.</span>`;
+      const searchId = document.getElementById('searchId').value.trim();
+      if (!searchId) {
+        alert('Please enter an Order ID');
+        return;
       }
-    })
-    .catch(err => {
-      console.error(err);
-      alert('Failed to fetch orders');
-    });
-}
-	
+
+      fetch(apiUrl)
+        .then(res => res.json())
+        .then(data => {
+          const order = data.find(o => o["Order ID"] == searchId);
+          const resultDiv = document.getElementById('searchResult');
+          if (order) {
+            resultDiv.innerHTML = `
+              <strong>Order Found:</strong><br>
+              <b>Order ID:</b> ${order["Order ID"]}<br>
+              <b>Order Name:</b> ${order["Order Name"]}<br>
+              <b>Quantity:</b> ${order["Quantity"]}<br>
+              <b>Contact:</b> ${order["Contact"]}
+            `;
+          } else {
+            resultDiv.innerHTML = `<span style="color: red;">Order ID ${searchId} not found.</span>`;
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          alert('Error searching for order');
+        });
+    }
+
+    // 📥 Fetch All Orders
+    function fetchOrders() {
+      fetch(apiUrl)
+        .then(res => res.json())
+        .then(data => {
+          const tbody = document.getElementById('ordersBody');
+          tbody.innerHTML = '';
+          data.forEach(order => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${order["Order ID"]}</td>
+              <td>${order["Order Name"]}</td>
+              <td>${order["Quantity"]}</td>
+              <td>${order["Contact"]}</td>
+            `;
+            tbody.appendChild(row);
+          });
+        })
+        .catch(err => {
+          console.error(err);
+          alert('Failed to load orders');
+        });
+    }
+
+    // 🔄 Load orders on page load
+    window.onload = fetchOrders;
   </script>
-}
-
-
 </body>
 </html>
+
